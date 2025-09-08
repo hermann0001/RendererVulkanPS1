@@ -1,0 +1,52 @@
+# --- Build output / CMake ---
+/build/
+/out/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/*.sln
+/*.vcxproj
+/*.vcxproj.filters
+
+# --- Ninja / MSVC intermedi ---
+/*.ninja
+/.ninja_deps
+/.ninja_log
+/*.pdb
+/*.ilk
+/*.idb
+/*.obj
+/*.exp
+/*.lib
+/*.dll
+/*.exe
+
+# --- VS Code / IDE ---
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+.vs/
+
+# --- Shader compilati (se copiati accanto all'eseguibile) ---
+/shaders/*.spv
+
+# --- Log / temp ---
+/*.log
+/tmp/
+/temp/
+
+# --- Python/Tools (se usati) ---
+__pycache__/
+*.pyc
+
+# --- RenderDoc captures (se presenti) ---
+/*.rdc
+
+# --- Assets generati/export temporanei ---
+/assets/generated/
+/assets/temp/
+
+# --- Librerie del progetto ---
+/lib/
+

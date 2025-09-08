@@ -1,0 +1,8 @@
+{
+  "cmake.useCMakePresets": "always",
+  "cmake.generator": "Ninja",
+  "cmake.configureOnOpen": true,
+  "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
+  "C_Cpp.default.intelliSenseMode": "msvc-x64",
+  "C_Cpp.default.compilerPath": "cl.exe"
+}
