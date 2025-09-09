@@ -4,20 +4,30 @@ project(RendererVulkanPS1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Facoltativo: è anche nei Preset, ma non dà fastidio
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Vulkan SDK
 find_package(Vulkan REQUIRED)
 
-# GLFW
+# GLFW (niente esempi/test/docs)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(lib/glfw)  
+add_subdirectory(lib/glfw)
 
 # GLM
-add_subdirectory(lib/glm)    
+add_subdirectory(lib/glm)
 
 # Executable
-add_executable(RendererVulkanPS1 src/main.cpp)
+add_executable(RendererVulkanPS1
+  src/main.cpp
+  src/core/Logger.cpp
+)
+
+target_include_directories(RendererVulkanPS1 PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 target_link_libraries(RendererVulkanPS1 PRIVATE
   Vulkan::Vulkan
@@ -25,20 +35,10 @@ target_link_libraries(RendererVulkanPS1 PRIVATE
   glm::glm
 )
 
-# Build type specific toggles
-target_compile_definitions(RendererVulkanPS1 PRIVATE
-  $<$<CONFIG:Debug>:ENABLE_VALIDATION_LAYERS=1;LOG_VERBOSE=1>
-  $<$<CONFIG:Release>:NDEBUG>
-)
-
 if (MSVC)
-  target_compile_options(RendererVulkanPS1 PRIVATE 
+  target_compile_options(RendererVulkanPS1 PRIVATE
     /permissive-
-    $<$<CONFIG:Debug>:/W4 /Zi /Od>      # more warnings, no optimizations
-    $<$<CONFIG:Release>:/W3 /O2>          # soft warning, optimization
-  )
-
-  set_property(TARGET RendererVulkanPS1 PROPERTY 
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" 
+    $<$<CONFIG:Debug>:/W4 /Zi /Od>
+    $<$<CONFIG:Release>:/W3 /O2>
   )
 endif()

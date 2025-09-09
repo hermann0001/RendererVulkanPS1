@@ -1,8 +1,11 @@
 {
   "cmake.useCMakePresets": "always",
-  "cmake.generator": "Ninja",
   "cmake.configureOnOpen": true,
-  "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
-  "C_Cpp.default.intelliSenseMode": "msvc-x64",
-  "C_Cpp.default.compilerPath": "cl.exe"
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.default.compilerPath": "",         
+  "C_Cpp.errorSquiggles": "enabled",
+  "files.associations": {
+    "*.h": "cpp",
+    "*.hpp": "cpp",
+  }
 }
