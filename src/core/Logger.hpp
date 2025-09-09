@@ -21,7 +21,7 @@
 #define LOGGER_USE_COLORS 1
 
 // disable debug and trace logging for release build
-#if RENDERER_RELEASE == 1
+#if RV_RELEASE == 1
 #define LOG_DEBUG_ENABLED 0
 #define LOG_TRACE_ENABLED 0
 #endif
