@@ -13,34 +13,25 @@
 #include <format>
 #include "defines.hpp"
 
-enum class LogLevel : uint8_t { Trace, Debug,  Info, Warn, Error, Crit, Off};
+#define LOG_WARN_ENABLED 1
+#define LOG_INFO_ENABLED 1
+#define LOG_DEBUG_ENABLED 1
+#define LOG_TRACE_ENABLED 1
 
-#ifndef LOG_COMPILETIME_MIN_LEVEL
-    #if RENDERER_DEBUG
-        #define LOG_COMPILETIME_MIN_LEVEL 0
-    #elif RENDERER_RELEASE
-        #define LOG_COMPILETIME_MIN_LEVEL 5
-    #else 
-        #define LOG_COMPILETIME_MIN_LEVEL 2
-    #endif
+#define LOGGER_USE_COLORS 1
+
+// disable debug and trace logging for release build
+#if RENDERER_RELEASE == 1
+#define LOG_DEBUG_ENABLED 0
+#define LOG_TRACE_ENABLED 0
 #endif
 
-constexpr LogLevel kBuildMinLevel = 
-  (LOG_COMPILETIME_MIN_LEVEL <= 0) ? LogLevel::Trace :
-  (LOG_COMPILETIME_MIN_LEVEL == 1) ? LogLevel::Debug :
-  (LOG_COMPILETIME_MIN_LEVEL == 2) ? LogLevel::Info  :
-  (LOG_COMPILETIME_MIN_LEVEL == 3) ? LogLevel::Warn  :
-  (LOG_COMPILETIME_MIN_LEVEL == 4) ? LogLevel::Error :
-  (LOG_COMPILETIME_MIN_LEVEL == 5) ? LogLevel::Crit  : LogLevel::Off;
+
+enum class LogLevel : uint8_t { Fatal, Error,  Warn, Info, Debug, Trace };
 
 namespace Log {
-struct Config {
-    bool        useColors = true;
-    bool        alsoFile = false;
-    std::string filePath = "renderer.log";
-};
 
-void init(const Config& cfg = {});
+bool init();
 void shutdown();
 LogLevel min_level();
 
@@ -54,47 +45,39 @@ inline void logf(LogLevel level, std::format_string<Args...> fmt, Args&&... args
 }
 
 // Macro comode (oneline + short-circuit compile-time)
-#if LOG_COMPILETIME_MIN_LEVEL <= 0
-#define LOG_TRACE(...)  ::Log::logf(LogLevel::Trace, __VA_ARGS__)
-#else
-#define LOG_TRACE(...)  ((void)0)
+
+// logs a fatal-level message
+#define LOG_FATAL(...)  ::Log::logf(LogLevel::Fatal, __VA_ARGS__)
+
+#ifndef LOG_ERROR
+// logs an error-level message
+#define LOG_ERROR(...)  ::Log::logf(LogLevel::Error, __VA_ARGS__)
 #endif
 
-#if LOG_COMPILETIME_MIN_LEVEL <= 1
-#define LOG_DEBUG(...)  ::Log::logf(LogLevel::Debug, __VA_ARGS__)
-#else
-#define LOG_DEBUG(...)  ((void)0)
-#endif
-
-#if LOG_COMPILETIME_MIN_LEVEL <= 2
-#define LOG_INFO(...)  ::Log::logf(LogLevel::Info, __VA_ARGS__)
-#else
-#define LOG_INFO(...)  ((void)0)
-#endif
-
-#if LOG_COMPILETIME_MIN_LEVEL <= 3
+#if LOG_WARN_ENABLED == 1
+// log a warning-level message
 #define LOG_WARN(...)  ::Log::logf(LogLevel::Warn, __VA_ARGS__)
 #else
-#define LOG_WARN(...)  ((void)0)
+#define LOG_WARN(...)
 #endif
 
-#if LOG_COMPILETIME_MIN_LEVEL <= 4
-#define LOG_ERROR(...)  ::Log::logf(LogLevel::Error, __VA_ARGS__)
+#if LOG_INFO_ENABLED == 1
+// log a info-level message
+#define LOG_INFO(...)  ::Log::logf(LogLevel::Info, __VA_ARGS__)
 #else
-#define LOG_ERROR(...)  ((void)0)
+#define LOG_INFO(...)
 #endif
 
-#if LOG_COMPILETIME_MIN_LEVEL <= 5
-#define LOG_CRIT(...)  ::Log::logf(LogLevel::Crit, __VA_ARGS__)
+#if LOG_DEBUG_ENABLED == 1
+// log a debug-level message
+#define LOG_DEBUG(...)  ::Log::logf(LogLevel::Debug, __VA_ARGS__)
 #else
-#define LOG_CRIT(...)  ((void)0)
+#define LOG_DEBUG(...)
 #endif
 
-// VK_CHECEK
-#define VK_CHECK(expr) do { \
-    VkResult _vk_res = (expr); \
-    if (_vk_res != VK_SUCCESS) { \
-        LOG_ERRORF("Vulkan error {} at {}:{}", static_cast<int>(_vk_res), __FILE__, __LINE__); \
-        std::terminate(); \
-    } \
-} while(0)
+#if LOG_TRACE_ENABLED == 1
+// log a debug-level message
+#define LOG_TRACE(...)  ::Log::logf(LogLevel::Trace, __VA_ARGS__)
+#else
+#define LOG_TRACE(...)
+#endif

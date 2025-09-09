@@ -2,11 +2,9 @@
 
 namespace {
 
+// contenitore per le risorse condivise (mutex + file)
 struct State {
     std::mutex mtx;
-    LogLevel runtime_min = kBuildMinLevel;
-    bool use_colors = true;
-    bool also_file = true;
     std::ofstream file;
 };
 
@@ -22,8 +20,7 @@ const char* level_name(LogLevel lvl) {
         case LogLevel::Info:     return "INFO";
         case LogLevel::Warn:     return "WARN";
         case LogLevel::Error:    return "ERROR";
-        case LogLevel::Crit: return "CRITICAL";
-        case LogLevel::Off:      return "OFF";
+        case LogLevel::Fatal:    return "FATAL";
     }
     return "?";
 }
@@ -36,8 +33,7 @@ const char* level_color(LogLevel lvl) {
         case LogLevel::Info:     return "\x1b[32m";  // green
         case LogLevel::Warn:     return "\x1b[33m";  // yellow
         case LogLevel::Error:    return "\x1b[31m";  // red
-        case LogLevel::Crit: return "\x1b[41m";  // red bg
-        case LogLevel::Off:      return "\x1b[0m";    
+        case LogLevel::Fatal:    return "\x1b[41m";  // red bg
     }
     return "\x1b[0m";
 }
@@ -49,7 +45,7 @@ std::string now_timestamp() {
     const auto ms = duration_cast<milliseconds>(tp.time_since_epoch()) % 1000;
 
     std::tm tm;
-    #if defined(WIN32)          // thread safety
+    #if defined(WIN32)         
         localtime_s(&tm, &t);   
     #else
         localtime_r(&t, &tm);
@@ -60,64 +56,41 @@ std::string now_timestamp() {
         << std::setw(3) << std::setfill('0') << ms.count();
     return oss.str();
 }
-
-inline bool enabled(LogLevel lvl) {
-  return static_cast<int>(lvl) >= static_cast<int>(state().runtime_min) && lvl != LogLevel::Off;
-}
 }
 
 namespace Log {
-
 // applica configurazione a runtime
-void init(const Config& cfg) {
+bool init() {
     auto& s = state();
     std::lock_guard<std::mutex> lock(s.mtx);
-    s.use_colors = cfg.useColors;
-    s.also_file = cfg.alsoFile;
 
-    if (s.also_file) {
-        if (s.file.is_open()) s.file.close();
-        s.file.open(cfg.filePath, std::ios::out | std::ios::trunc); // sovrascrive
-    }
+    // TODO: open file ecc.
+    return true;
 }
 
 void shutdown() {
-    auto& s = state();
-    std::lock_guard<std::mutex> lock(s.mtx);
-    if (s.file.is_open()) s.file.close();
+    // TODO: cleanup logging/writing queued entries
 }
 
-LogLevel min_level() {
-    auto& s = state();
-    std::lock_guard<std::mutex> lock(s.mtx);
-    return s.runtime_min;
-}
-
-void log_sink(LogLevel level, std::string_view msg){
-    if (!enabled(level)) return;
-    
+void log_sink(LogLevel level, std::string_view msg){    
     auto& s = state();
     const std::string ts = now_timestamp();
-    const char* name = level_name(level);
 
     std::ostringstream line; 
-    line << '[' << ts << "] [" << name << "] " << msg << '\n';
+    line << '[' << ts << "] [" << level_name(level) << "] " << msg << '\n';
     const std::string plain = line.str();
 
     std::lock_guard<std::mutex> lock(s.mtx);
 
     std::ostream& out = (level >= LogLevel::Warn) ? std::cerr : std::cout;
-    if (s.use_colors) {
-        out << level_color(level) << '[' << ts << "] [" << name << "] "
+    if (LOGGER_USE_COLORS) {
+        out << level_color(level) << '[' << ts << "] [" << level_name(level) << "] "
             << msg << "\x1b[0m\n";
     } else {
         out << plain;
     }
     out.flush();
 
-    if (s.also_file && s.file.is_open()) {
-        s.file << plain;
-        s.file.flush();
-    }
+    // TODO: make file writes in batches
 }
 }

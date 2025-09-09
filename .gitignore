@@ -23,9 +23,7 @@
 /*.exe
 
 # --- VS Code / IDE ---
-.vscode/*
-!.vscode/settings.json
-!.vscode/launch.json
+.vscode/
 .vs/
 
 # --- Shader compilati (se copiati accanto all'eseguibile) ---
