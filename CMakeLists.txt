@@ -20,6 +20,7 @@ add_subdirectory(lib/glm)
 add_executable(RendererVulkanPS1
   src/main.cpp
   src/core/Logger.cpp
+  src/core/assert.hpp
 )
 
 target_include_directories(RendererVulkanPS1 PRIVATE

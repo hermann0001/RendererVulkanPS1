@@ -1,4 +1,5 @@
 #include "Logger.hpp"
+#include "assert.hpp"
 
 namespace {
 
@@ -92,5 +93,11 @@ void log_sink(LogLevel level, std::string_view msg){
     out.flush();
 
     // TODO: make file writes in batches
+
+    if (level == LogLevel::Fatal) rv_debug_break();
 }
+}
+
+void report_assertion_failure(const char* expr, const char* msg, const char* file, int line) {
+    LOG_FATAL("Assertion Failure: {}, message: {}, {}:{}", expr, msg, file, line);
 }
