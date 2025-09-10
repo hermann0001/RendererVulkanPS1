@@ -16,11 +16,11 @@ add_subdirectory(lib/glfw)
 # GLM
 add_subdirectory(lib/glm)
 
+file(GLOB_RECURSE CPP_SOURCE_FILES CONFIGURE_DEPENDS "src/*.hpp" "src/*.cpp")
+
 # Executable
 add_executable(RendererVulkanPS1
-  src/main.cpp
-  src/core/Logger.cpp
-  src/core/assert.hpp
+  ${CPP_SOURCE_FILES}
 )
 
 target_include_directories(RendererVulkanPS1 PRIVATE

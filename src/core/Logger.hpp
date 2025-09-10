@@ -26,58 +26,66 @@
 #define LOG_TRACE_ENABLED 0
 #endif
 
+namespace RV::Core::Log {
+enum class Level : uint8_t { Fatal, Error,  Warn, Info, Debug, Trace };
 
-enum class LogLevel : uint8_t { Fatal, Error,  Warn, Info, Debug, Trace };
+class Logger {
+public:
+  static Logger& instance();
+  void shutdown();
 
-namespace Log {
+  // Unico entry-point: stile {} (std::format)
+  template <typename... Args>
+  inline void logf(Level level, std::format_string<Args...> fmt, Args&&... args) {
+    log(level, std::format(fmt, std::forward<Args>(args)...));
+  }
+  void log(Level level, std::string_view msg);
 
-bool init();
-void shutdown();
-LogLevel min_level();
+private:
+  Logger();
+  ~Logger();
+  Logger(const Logger&) = delete;
+  Logger& operator=(const Logger&) = delete;
 
-void log_sink(LogLevel level, std::string_view msg);
-
-// Unico entry-point: stile {} (std::format)
-template <typename... Args>
-inline void logf(LogLevel level, std::format_string<Args...> fmt, Args&&... args) {
-  log_sink(level, std::format(fmt, std::forward<Args>(args)...));
-}
+  mutable std::mutex mtx;
+  std::ofstream file;
+};
 }
 
 // Macro comode (oneline + short-circuit compile-time)
 
 // logs a fatal-level message
-#define LOG_FATAL(...)  ::Log::logf(LogLevel::Fatal, __VA_ARGS__)
+#define LOG_FATAL(...)  ::RV::Core::Log::Logger::instance().logf(::RV::Core::Log::Level::Fatal, __VA_ARGS__)
 
 #ifndef LOG_ERROR
 // logs an error-level message
-#define LOG_ERROR(...)  ::Log::logf(LogLevel::Error, __VA_ARGS__)
+#define LOG_ERROR(...)  ::RV::Core::Log::Logger::instance().logf(::RV::Core::Log::Level::Error, __VA_ARGS__)
 #endif
 
 #if LOG_WARN_ENABLED == 1
 // log a warning-level message
-#define LOG_WARN(...)  ::Log::logf(LogLevel::Warn, __VA_ARGS__)
+#define LOG_WARN(...)  ::RV::Core::Log::Logger::instance().logf(::RV::Core::Log::Level::Warn, __VA_ARGS__)
 #else
 #define LOG_WARN(...)
 #endif
 
 #if LOG_INFO_ENABLED == 1
 // log a info-level message
-#define LOG_INFO(...)  ::Log::logf(LogLevel::Info, __VA_ARGS__)
+#define LOG_INFO(...)  ::RV::Core::Log::Logger::instance().logf(::RV::Core::Log::Level::Info, __VA_ARGS__)
 #else
 #define LOG_INFO(...)
 #endif
 
 #if LOG_DEBUG_ENABLED == 1
 // log a debug-level message
-#define LOG_DEBUG(...)  ::Log::logf(LogLevel::Debug, __VA_ARGS__)
+#define LOG_DEBUG(...)  ::RV::Core::Log::Logger::instance().logf(::RV::Core::Log::Level::Debug, __VA_ARGS__)
 #else
 #define LOG_DEBUG(...)
 #endif
 
 #if LOG_TRACE_ENABLED == 1
 // log a debug-level message
-#define LOG_TRACE(...)  ::Log::logf(LogLevel::Trace, __VA_ARGS__)
+#define LOG_TRACE(...)  ::RV::Core::Log::Logger::instance().logf(::RV::Core::Log::Level::Trace, __VA_ARGS__)
 #else
 #define LOG_TRACE(...)
 #endif
