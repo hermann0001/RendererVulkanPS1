@@ -8,12 +8,9 @@ using clock_st = std::chrono::steady_clock;
 
 namespace RV {
 Application::Application() 
-    : window_(new RV::Platform::Window(1280, 720, "RV PS1"))
+    : window_(std::make_unique<RV::Platform::Window>(1280, 720, "RV PS1"))
     , last_(clock_st::now()) {}
 
-Application::~Application() {
-    delete window_;
-}
 
 void Application::run() {
     using RV::Core::Log::Logger;
